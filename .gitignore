@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.pyo
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Build outputs
+.next/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+*.Zone.Identifier
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database dumps (large files)
+*.sql
+
+# Cache
+.cache/
+*.cache
