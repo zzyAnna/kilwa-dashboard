@@ -116,9 +116,9 @@ Four dedicated upload areas for different data types:
 
 ### Technologies Used
 - **HTML5**: Structure and semantic markup
-- **CSS3**: Modern styling with CSS Grid and Flexbox
+- **CSS3**: Modern styling with CSS Grid and Flexbox, CSS-based visualizations
 - **JavaScript (ES6+)**: Interactive functionality
-- **Chart.js**: Data visualization library
+- **No External Dependencies**: All visualizations built with pure CSS
 
 ### Browser Compatibility
 - Chrome 90+
@@ -128,7 +128,7 @@ Four dedicated upload areas for different data types:
 
 ### Performance
 - Lightweight (< 50KB total)
-- No external dependencies except Chart.js CDN
+- No external dependencies
 - Fast load times
 - Responsive on all devices
 
@@ -199,6 +199,6 @@ For issues or questions:
 
 ## Acknowledgments
 
-- Chart.js for visualization capabilities
+- Pure CSS and JavaScript for lightweight implementation
 - Modern web standards (ES6+, CSS Grid, Flexbox)
 - The Kilwa team for requirements and feedback
