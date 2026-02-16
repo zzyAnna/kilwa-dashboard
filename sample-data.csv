@@ -1,0 +1,21 @@
+model,sentiment,text,confidence,accuracy,precision,recall,f1
+finbert,positive,"The company reported strong quarterly earnings with revenue exceeding expectations.",0.95,89.2,88.5,87.3,87.9
+finbert,negative,"Market volatility continues to impact investor confidence negatively.",0.88,89.2,88.5,87.3,87.9
+finbert,neutral,"The company maintains its current dividend policy.",0.72,89.2,88.5,87.3,87.9
+finbert,positive,"Stock prices surged following the merger announcement.",0.92,89.2,88.5,87.3,87.9
+finbert,negative,"The company faces significant challenges in the current economic climate.",0.85,89.2,88.5,87.3,87.9
+finbert,positive,"Investors are optimistic about the new product launch.",0.89,89.2,88.5,87.3,87.9
+finbert,neutral,"The quarterly report will be released next week.",0.68,89.2,88.5,87.3,87.9
+finbert,positive,"Record-breaking profits announced in annual report.",0.94,89.2,88.5,87.3,87.9
+finbert,negative,"Company stock plummeted after disappointing earnings call.",0.91,89.2,88.5,87.3,87.9
+finbert,neutral,"Board meeting scheduled for next month.",0.65,89.2,88.5,87.3,87.9
+vader,positive,"The company reported strong quarterly earnings with revenue exceeding expectations.",0.8,86.4,85.2,84.1,84.6
+vader,negative,"Market volatility continues to impact investor confidence negatively.",0.7,86.4,85.2,84.1,84.6
+vader,neutral,"The company maintains its current dividend policy.",0.1,86.4,85.2,84.1,84.6
+vader,positive,"Stock prices surged following the merger announcement.",0.75,86.4,85.2,84.1,84.6
+vader,negative,"The company faces significant challenges in the current economic climate.",0.65,86.4,85.2,84.1,84.6
+vader,positive,"Investors are optimistic about the new product launch.",0.78,86.4,85.2,84.1,84.6
+vader,neutral,"The quarterly report will be released next week.",0.05,86.4,85.2,84.1,84.6
+vader,positive,"Record-breaking profits announced in annual report.",0.85,86.4,85.2,84.1,84.6
+vader,negative,"Company stock plummeted after disappointing earnings call.",0.82,86.4,85.2,84.1,84.6
+vader,neutral,"Board meeting scheduled for next month.",0.02,86.4,85.2,84.1,84.6

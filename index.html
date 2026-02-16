@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kilwa Dashboard - Model Performance Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Kilwa Dashboard</h1>
+            <p class="subtitle">Monitor and Analyze Model Performance</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <h2>📤 Data Upload</h2>
+                <div class="upload-grid">
+                    <div class="upload-card">
+                        <h3>Raw Data Upload</h3>
+                        <p>Upload raw text data for processing</p>
+                        <input type="file" id="rawDataUpload" accept=".csv,.json,.txt" />
+                        <button onclick="handleUpload('rawData')" class="btn btn-primary">Upload Raw Data</button>
+                        <div id="rawDataStatus" class="status-message"></div>
+                    </div>
+
+                    <div class="upload-card">
+                        <h3>Preprocessed Data Upload</h3>
+                        <p>Upload preprocessed data for analysis</p>
+                        <input type="file" id="preprocessedUpload" accept=".csv,.json" />
+                        <button onclick="handleUpload('preprocessed')" class="btn btn-primary">Upload Preprocessed</button>
+                        <div id="preprocessedStatus" class="status-message"></div>
+                    </div>
+
+                    <div class="upload-card">
+                        <h3>Model Results Upload</h3>
+                        <p>Upload model prediction results</p>
+                        <input type="file" id="resultsUpload" accept=".csv,.json" />
+                        <button onclick="handleUpload('results')" class="btn btn-primary">Upload Results</button>
+                        <div id="resultsStatus" class="status-message"></div>
+                    </div>
+
+                    <div class="upload-card">
+                        <h3>Ground Truth Upload</h3>
+                        <p>Upload labeled data for validation</p>
+                        <input type="file" id="groundTruthUpload" accept=".csv,.json" />
+                        <button onclick="handleUpload('groundTruth')" class="btn btn-primary">Upload Ground Truth</button>
+                        <div id="groundTruthStatus" class="status-message"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FinBERT Metrics Section -->
+            <section class="metrics-section">
+                <h2>🤖 FinBERT Model Metrics</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>Accuracy</h4>
+                        <div class="metric-value" id="finbert-accuracy">0.00%</div>
+                        <div class="metric-trend positive">↑ 2.3%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Precision</h4>
+                        <div class="metric-value" id="finbert-precision">0.00%</div>
+                        <div class="metric-trend positive">↑ 1.5%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Recall</h4>
+                        <div class="metric-value" id="finbert-recall">0.00%</div>
+                        <div class="metric-trend negative">↓ 0.8%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>F1 Score</h4>
+                        <div class="metric-value" id="finbert-f1">0.00%</div>
+                        <div class="metric-trend positive">↑ 1.2%</div>
+                    </div>
+                </div>
+                
+                <div class="performance-chart">
+                    <h3>Performance Over Time</h3>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-dot accuracy"></span> Accuracy</span>
+                        <span class="legend-item"><span class="legend-dot f1"></span> F1 Score</span>
+                    </div>
+                    <div class="time-series">
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 82%;" data-value="82"></div>
+                                <div class="bar f1" style="height: 80%;" data-value="80"></div>
+                            </div>
+                            <div class="time-label">Week 1</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 84%;" data-value="84"></div>
+                                <div class="bar f1" style="height: 82%;" data-value="82"></div>
+                            </div>
+                            <div class="time-label">Week 2</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 85%;" data-value="85"></div>
+                                <div class="bar f1" style="height: 84%;" data-value="84"></div>
+                            </div>
+                            <div class="time-label">Week 3</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 87%;" data-value="87"></div>
+                                <div class="bar f1" style="height: 85%;" data-value="85"></div>
+                            </div>
+                            <div class="time-label">Week 4</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 89%;" data-value="89"></div>
+                                <div class="bar f1" style="height: 87%;" data-value="87"></div>
+                            </div>
+                            <div class="time-label">Current</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sentiment-distribution">
+                    <h3>Sentiment Distribution</h3>
+                    <div class="distribution-grid">
+                        <div class="distribution-item">
+                            <span class="label">Positive</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill positive" id="finbert-positive" style="width: 0%"></div>
+                            </div>
+                            <span class="percentage" id="finbert-positive-pct">0%</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="label">Neutral</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill neutral" id="finbert-neutral" style="width: 0%"></div>
+                            </div>
+                            <span class="percentage" id="finbert-neutral-pct">0%</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="label">Negative</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill negative" id="finbert-negative" style="width: 0%"></div>
+                            </div>
+                            <span class="percentage" id="finbert-negative-pct">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VADER+TextBlob Metrics Section -->
+            <section class="metrics-section">
+                <h2>📊 VADER + TextBlob Metrics</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>Accuracy</h4>
+                        <div class="metric-value" id="vader-accuracy">0.00%</div>
+                        <div class="metric-trend positive">↑ 3.1%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Precision</h4>
+                        <div class="metric-value" id="vader-precision">0.00%</div>
+                        <div class="metric-trend positive">↑ 2.8%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Recall</h4>
+                        <div class="metric-value" id="vader-recall">0.00%</div>
+                        <div class="metric-trend positive">↑ 1.9%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>F1 Score</h4>
+                        <div class="metric-value" id="vader-f1">0.00%</div>
+                        <div class="metric-trend positive">↑ 2.4%</div>
+                    </div>
+                </div>
+
+                <div class="performance-chart">
+                    <h3>Performance Over Time</h3>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-dot accuracy"></span> Accuracy</span>
+                        <span class="legend-item"><span class="legend-dot f1"></span> F1 Score</span>
+                    </div>
+                    <div class="time-series">
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 78%;" data-value="78"></div>
+                                <div class="bar f1" style="height: 76%;" data-value="76"></div>
+                            </div>
+                            <div class="time-label">Week 1</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 80%;" data-value="80"></div>
+                                <div class="bar f1" style="height: 78%;" data-value="78"></div>
+                            </div>
+                            <div class="time-label">Week 2</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 82%;" data-value="82"></div>
+                                <div class="bar f1" style="height: 80%;" data-value="80"></div>
+                            </div>
+                            <div class="time-label">Week 3</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 84%;" data-value="84"></div>
+                                <div class="bar f1" style="height: 82%;" data-value="82"></div>
+                            </div>
+                            <div class="time-label">Week 4</div>
+                        </div>
+                        <div class="time-point">
+                            <div class="bar-group">
+                                <div class="bar accuracy" style="height: 86%;" data-value="86"></div>
+                                <div class="bar f1" style="height: 84%;" data-value="84"></div>
+                            </div>
+                            <div class="time-label">Current</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sentiment-distribution">
+                    <h3>Sentiment Distribution</h3>
+                    <div class="distribution-grid">
+                        <div class="distribution-item">
+                            <span class="label">Positive</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill positive" id="vader-positive" style="width: 0%"></div>
+                            </div>
+                            <span class="percentage" id="vader-positive-pct">0%</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="label">Neutral</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill neutral" id="vader-neutral" style="width: 0%"></div>
+                            </div>
+                            <span class="percentage" id="vader-neutral-pct">0%</span>
+                        </div>
+                        <div class="distribution-item">
+                            <span class="label">Negative</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill negative" id="vader-negative" style="width: 0%"></div>
+                            </div>
+                            <span class="percentage" id="vader-negative-pct">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Model Comparison Section -->
+            <section class="comparison-section">
+                <h2>⚖️ Model Comparison</h2>
+                <div class="comparison-chart">
+                    <div class="comparison-metric">
+                        <div class="metric-name">Accuracy</div>
+                        <div class="comparison-bars">
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">FinBERT</div>
+                                <div class="comparison-bar finbert" style="width: 89%;">89%</div>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">VADER+TB</div>
+                                <div class="comparison-bar vader" style="width: 86%;">86%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comparison-metric">
+                        <div class="metric-name">Precision</div>
+                        <div class="comparison-bars">
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">FinBERT</div>
+                                <div class="comparison-bar finbert" style="width: 88%;">88%</div>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">VADER+TB</div>
+                                <div class="comparison-bar vader" style="width: 85%;">85%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comparison-metric">
+                        <div class="metric-name">Recall</div>
+                        <div class="comparison-bars">
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">FinBERT</div>
+                                <div class="comparison-bar finbert" style="width: 87%;">87%</div>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">VADER+TB</div>
+                                <div class="comparison-bar vader" style="width: 84%;">84%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comparison-metric">
+                        <div class="metric-name">F1 Score</div>
+                        <div class="comparison-bars">
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">FinBERT</div>
+                                <div class="comparison-bar finbert" style="width: 87%;">87%</div>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-label">VADER+TB</div>
+                                <div class="comparison-bar vader" style="width: 84%;">84%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Activity Section -->
+            <section class="activity-section">
+                <h2>📝 Recent Activity</h2>
+                <div id="activityLog" class="activity-log">
+                    <p class="no-data">No recent activity. Upload data to get started.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Kilwa Dashboard &copy; 2026 | Model Performance Monitoring System</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

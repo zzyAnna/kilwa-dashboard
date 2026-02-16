@@ -1,0 +1,102 @@
+[
+  {
+    "model": "finbert",
+    "text": "The company reported strong quarterly earnings with revenue exceeding expectations.",
+    "sentiment": "positive",
+    "confidence": 0.95,
+    "accuracy": 89.2,
+    "precision": 88.5,
+    "recall": 87.3,
+    "f1": 87.9
+  },
+  {
+    "model": "finbert",
+    "text": "Market volatility continues to impact investor confidence negatively.",
+    "sentiment": "negative",
+    "confidence": 0.88,
+    "accuracy": 89.2,
+    "precision": 88.5,
+    "recall": 87.3,
+    "f1": 87.9
+  },
+  {
+    "model": "finbert",
+    "text": "The company maintains its current dividend policy.",
+    "sentiment": "neutral",
+    "confidence": 0.72,
+    "accuracy": 89.2,
+    "precision": 88.5,
+    "recall": 87.3,
+    "f1": 87.9
+  },
+  {
+    "model": "finbert",
+    "text": "Stock prices surged following the merger announcement.",
+    "sentiment": "positive",
+    "confidence": 0.92,
+    "accuracy": 89.2,
+    "precision": 88.5,
+    "recall": 87.3,
+    "f1": 87.9
+  },
+  {
+    "model": "finbert",
+    "text": "The company faces significant challenges in the current economic climate.",
+    "sentiment": "negative",
+    "confidence": 0.85,
+    "accuracy": 89.2,
+    "precision": 88.5,
+    "recall": 87.3,
+    "f1": 87.9
+  },
+  {
+    "model": "vader",
+    "text": "The company reported strong quarterly earnings with revenue exceeding expectations.",
+    "sentiment": "positive",
+    "compound": 0.8,
+    "accuracy": 86.4,
+    "precision": 85.2,
+    "recall": 84.1,
+    "f1": 84.6
+  },
+  {
+    "model": "vader",
+    "text": "Market volatility continues to impact investor confidence negatively.",
+    "sentiment": "negative",
+    "compound": -0.7,
+    "accuracy": 86.4,
+    "precision": 85.2,
+    "recall": 84.1,
+    "f1": 84.6
+  },
+  {
+    "model": "vader",
+    "text": "The company maintains its current dividend policy.",
+    "sentiment": "neutral",
+    "compound": 0.1,
+    "accuracy": 86.4,
+    "precision": 85.2,
+    "recall": 84.1,
+    "f1": 84.6
+  },
+  {
+    "model": "vader",
+    "text": "Stock prices surged following the merger announcement.",
+    "sentiment": "positive",
+    "compound": 0.75,
+    "accuracy": 86.4,
+    "precision": 85.2,
+    "recall": 84.1,
+    "f1": 84.6
+  },
+  {
+    "model": "vader",
+    "text": "The company faces significant challenges in the current economic climate.",
+    "sentiment": "negative",
+    "compound": -0.65,
+    "accuracy": 86.4,
+    "precision": 85.2,
+    "recall": 84.1,
+    "f1": 84.6
+  }
+]
