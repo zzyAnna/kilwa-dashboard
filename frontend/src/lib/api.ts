@@ -45,9 +45,29 @@ export interface ModelComparison {
   difference: number;
 }
 
-export async function getScraperHealth(): Promise<ScraperHealth> {
-  const res = await fetch(`${API_BASE}/api/scraper/health`);
+export async function getScraperHealth(
+  source?: string,
+  language?: string
+): Promise<ScraperHealth> {
+  const params = new URLSearchParams();
+  if (source) params.append('source', source);
+  if (language) params.append('language', language);
+  
+  const url = `${API_BASE}/api/scraper/health${params.toString() ? '?' + params.toString() : ''}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch scraper health');
+  return res.json();
+}
+
+export async function getScraperSources(): Promise<{source: string, count: number}[]> {
+  const res = await fetch(`${API_BASE}/api/scraper/sources`);
+  if (!res.ok) throw new Error('Failed to fetch sources');
+  return res.json();
+}
+
+export async function getScraperLanguages(): Promise<{language: string, count: number}[]> {
+  const res = await fetch(`${API_BASE}/api/scraper/languages`);
+  if (!res.ok) throw new Error('Failed to fetch languages');
   return res.json();
 }
 

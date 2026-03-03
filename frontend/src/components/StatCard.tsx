@@ -17,9 +17,9 @@ export default function StatCard({ title, value, subtitle, color = 'blue' }: Sta
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+          <p className="text-sm text-gray-700 font-medium">{title}</p>
+          <p className="text-2xl font-bold mt-1 text-gray-900">{value}</p>
+          {subtitle && <p className="text-xs text-gray-600 mt-1">{subtitle}</p>}
         </div>
         <div className={`w-3 h-3 rounded-full ${colorClasses[color]}`} />
       </div>

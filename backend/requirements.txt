@@ -16,8 +16,8 @@ transformers>=4.30.0
 torch>=2.0.0
 
 # Data Processing
-pandas==2.0.3
-numpy==1.26.4
+pandas>=2.0.0
+numpy>=1.26.0
 
 # Logging
 loguru==0.7.2

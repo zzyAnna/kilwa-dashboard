@@ -38,13 +38,25 @@ class ScraperHealth(BaseModel):
 
 
 @router.get("/health", response_model=ScraperHealth)
-def get_scraper_health(db: Session = Depends(get_db)):
+def get_scraper_health(
+    source: str = Query(None, description="Filter by source"),
+    language: str = Query(None, description="Filter by language"),
+    db: Session = Depends(get_db)
+):
     """
     Get comprehensive scraper health metrics
     Shows metadata completeness and data quality
+    Optional filters: source, language
     """
-    # Total articles
-    total = db.query(func.count(NewsArticle.id)).scalar()
+    # Build base query with filters
+    base_query = db.query(NewsArticle)
+    if source:
+        base_query = base_query.filter(NewsArticle.source == source)
+    if language:
+        base_query = base_query.filter(NewsArticle.language == language)
+    
+    # Total articles (with filters)
+    total = base_query.count()
     
     # Field statistics
     fields_to_check = [
@@ -56,7 +68,7 @@ def get_scraper_health(db: Session = Depends(get_db)):
     field_stats = []
     for field in fields_to_check:
         column = getattr(NewsArticle, field)
-        null_count = db.query(func.count(NewsArticle.id)).filter(column == None).scalar()
+        null_count = base_query.filter(column == None).count()
         
         null_pct = (null_count / total * 100) if total > 0 else 0
         
@@ -68,13 +80,16 @@ def get_scraper_health(db: Session = Depends(get_db)):
             non_null_percentage=round(100 - null_pct, 2)
         ))
     
-    # Source breakdown
+    # Source breakdown (with language filter if provided)
     source_query = db.query(
         NewsArticle.source,
         func.count(NewsArticle.id).label("count"),
         func.sum(case((NewsArticle.content == None, 1), else_=0)).label("content_null"),
         func.sum(case((NewsArticle.summary == None, 1), else_=0)).label("summary_null")
-    ).group_by(NewsArticle.source).all()
+    )
+    if language:
+        source_query = source_query.filter(NewsArticle.language == language)
+    source_query = source_query.group_by(NewsArticle.source).all()
     
     source_stats = []
     for row in source_query:
@@ -88,21 +103,28 @@ def get_scraper_health(db: Session = Depends(get_db)):
             summary_null_pct=round(summary_null_pct, 2)
         ))
     
-    # Language distribution
+    # Language distribution (with source filter if provided)
     lang_query = db.query(
         NewsArticle.language,
         func.count(NewsArticle.id).label("count")
-    ).filter(NewsArticle.language != None).group_by(NewsArticle.language).all()
+    ).filter(NewsArticle.language != None)
+    if source:
+        lang_query = lang_query.filter(NewsArticle.source == source)
+    lang_query = lang_query.group_by(NewsArticle.language).all()
     
     language_dist = {row.language: row.count for row in lang_query}
     
-    # Articles by country
+    # Articles by country (with filters if provided)
     country_query = db.query(
         Country.name,
         Country.iso_code,
         func.count(NewsArticle.id).label("article_count")
-    ).join(NewsArticle, NewsArticle.country_id == Country.id)\
-     .group_by(Country.id, Country.name, Country.iso_code).all()
+    ).join(NewsArticle, NewsArticle.country_id == Country.id)
+    if source:
+        country_query = country_query.filter(NewsArticle.source == source)
+    if language:
+        country_query = country_query.filter(NewsArticle.language == language)
+    country_query = country_query.group_by(Country.id, Country.name, Country.iso_code).all()
     
     country_stats = [
         {"country": row.name, "iso_code": row.iso_code, "count": row.article_count}
@@ -116,6 +138,28 @@ def get_scraper_health(db: Session = Depends(get_db)):
         language_distribution=language_dist,
         articles_by_country=country_stats
     )
+
+
+@router.get("/sources")
+def get_sources(db: Session = Depends(get_db)):
+    """Get list of all sources with article counts"""
+    sources = db.query(
+        NewsArticle.source,
+        func.count(NewsArticle.id).label("count")
+    ).group_by(NewsArticle.source).order_by(func.count(NewsArticle.id).desc()).all()
+    
+    return [{"source": s.source, "count": s.count} for s in sources]
+
+
+@router.get("/languages")
+def get_languages(db: Session = Depends(get_db)):
+    """Get list of all languages with article counts"""
+    langs = db.query(
+        NewsArticle.language,
+        func.count(NewsArticle.id).label("count")
+    ).filter(NewsArticle.language != None).group_by(NewsArticle.language).all()
+    
+    return [{"language": l.language, "count": l.count} for l in langs]
 
 
 @router.get("/field-stats")
@@ -157,3 +201,14 @@ def get_sources(db: Session = Depends(get_db)):
     ).group_by(NewsArticle.source).order_by(func.count(NewsArticle.id).desc()).all()
     
     return [{"source": s.source, "count": s.count} for s in sources]
+
+
+@router.get("/languages")
+def get_languages(db: Session = Depends(get_db)):
+    """Get list of all languages with article counts"""
+    langs = db.query(
+        NewsArticle.language,
+        func.count(NewsArticle.id).label("count")
+    ).filter(NewsArticle.language != None).group_by(NewsArticle.language).all()
+    
+    return [{"language": l.language, "count": l.count} for l in langs]
