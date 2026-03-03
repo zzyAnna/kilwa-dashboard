@@ -212,3 +212,75 @@ def get_languages(db: Session = Depends(get_db)):
     ).filter(NewsArticle.language != None).group_by(NewsArticle.language).all()
     
     return [{"language": l.language, "count": l.count} for l in langs]
+
+
+@router.get("/dqs")
+def get_dqs(
+    source: str = Query(None, description="Filter by source"),
+    language: str = Query(None, description="Filter by language"),
+    db: Session = Depends(get_db)
+):
+    """
+    Calculate Data Quality Score (DQS) based on 4 dimensions
+    Returns: Completeness, Accuracy, Consistency, Relevance, Final DQS
+    """
+    # Build base query with filters
+    base_query = db.query(NewsArticle)
+    if source:
+        base_query = base_query.filter(NewsArticle.source == source)
+    if language:
+        base_query = base_query.filter(NewsArticle.language == language)
+    
+    total = base_query.count()
+    if total == 0:
+        return {
+            "completeness": 0,
+            "accuracy": 0,
+            "consistency": 0,
+            "relevance": 0,
+            "final_dqs": 0,
+            "total_articles": 0
+        }
+    
+    # 1. Completeness (C)
+    critical_cols = ['content', 'sentiment_score', 'sentiment_label', 'sentiment_confidence']
+    completeness_scores = []
+    for col in critical_cols:
+        column = getattr(NewsArticle, col)
+        not_null_count = base_query.filter(column != None).count()
+        completeness_scores.append(not_null_count / total)
+    C = sum(completeness_scores) / len(completeness_scores)
+    
+    # 2. Accuracy (A)
+    A = base_query.filter(NewsArticle.sentiment_confidence != None).with_entities(
+        func.avg(NewsArticle.sentiment_confidence)
+    ).scalar() or 0
+    
+    # 3. Consistency (S)
+    valid_labels = {'positive', 'negative', 'neutral'}
+    consistent_count = base_query.filter(
+        NewsArticle.sentiment_label.in_(valid_labels)
+    ).count()
+    S = consistent_count / total
+    
+    # 4. Relevance (R)
+    # Check if content has actual text (length > 0)
+    relevant_count = base_query.filter(
+        func.length(NewsArticle.content) > 0
+    ).count()
+    R = (relevant_count / total) * 0.5  # Weighted down
+    
+    # Weights
+    w1, w2, w3, w4 = 0.30, 0.40, 0.15, 0.15
+    
+    # Final DQS
+    dqs = (w1 * C) + (w2 * A) + (w3 * S) + (w4 * R)
+    
+    return {
+        "completeness": round(C, 4),
+        "accuracy": round(A, 4),
+        "consistency": round(S, 4),
+        "relevance": round(R, 4),
+        "final_dqs": round(dqs, 4),
+        "total_articles": total
+    }

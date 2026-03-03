@@ -15,6 +15,16 @@ export default function ScraperPage() {
   const [languageFilter, setLanguageFilter] = useState<string>('all');
   const [sources, setSources] = useState<{source: string, count: number}[]>([]);
   const [languages, setLanguages] = useState<{language: string, count: number}[]>([]);
+  
+  // DQS state
+  const [dqsData, setDqsData] = useState<{
+    completeness: number;
+    accuracy: number;
+    consistency: number;
+    relevance: number;
+    final_dqs: number;
+    total_articles: number;
+  } | null>(null);
 
   // Fetch filter options on mount
   useEffect(() => {
@@ -32,6 +42,18 @@ export default function ScraperPage() {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+  }, [sourceFilter, languageFilter]);
+
+  // Fetch DQS data with filters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (sourceFilter !== 'all') params.append('source', sourceFilter);
+    if (languageFilter !== 'all') params.append('language', languageFilter);
+    
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/scraper/dqs?${params.toString()}`)
+      .then(res => res.json())
+      .then(setDqsData)
+      .catch(console.error);
   }, [sourceFilter, languageFilter]);
 
   if (loading) {
@@ -116,6 +138,86 @@ export default function ScraperPage() {
           </button>
         </div>
       </div>
+
+      {/* Data Quality Score Section */}
+      {dqsData && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Quality Score (DQS)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Completeness */}
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="group relative inline-block cursor-help">
+                <div className="text-sm text-gray-700 font-medium">Completeness</div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
+                  Measures presence of data in core fields: content, sentiment_score, sentiment_label, sentiment_confidence
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-blue-600 mt-1">
+                {(dqsData.completeness * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Weight: 30%</div>
+            </div>
+            
+            {/* Accuracy */}
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="group relative inline-block cursor-help">
+                <div className="text-sm text-gray-700 font-medium">Accuracy</div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
+                  Derived from model confidence levels. Uses mean sentiment_confidence as proxy for accuracy
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-green-600 mt-1">
+                {(dqsData.accuracy * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Weight: 40%</div>
+            </div>
+            
+            {/* Consistency */}
+            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+              <div className="group relative inline-block cursor-help">
+                <div className="text-sm text-gray-700 font-medium">Consistency</div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
+                  Checks if sentiment_label follows expected categories: Positive, Negative, Neutral, Irrelevant
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-yellow-600 mt-1">
+                {(dqsData.consistency * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Weight: 15%</div>
+            </div>
+            
+            {/* Relevance */}
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="group relative inline-block cursor-help">
+                <div className="text-sm text-gray-700 font-medium">Relevance</div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
+                  Determines if data is useful for analysis. Penalized due to missing relevance_score and word_count metadata
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-purple-600 mt-1">
+                {(dqsData.relevance * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Weight: 15%</div>
+            </div>
+            
+            {/* Final DQS */}
+            <div className="text-center p-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg text-white">
+              <div className="group relative inline-block cursor-help">
+                <div className="text-sm font-medium opacity-90">Final DQS</div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-56 z-10">
+                  Aggregate score: 0.30×Completeness + 0.40×Accuracy + 0.15×Consistency + 0.15×Relevance
+                </div>
+              </div>
+              <div className="text-3xl font-bold mt-1">
+                {(dqsData.final_dqs * 100).toFixed(1)}%
+              </div>
+              <div className="text-xs opacity-75 mt-1">
+                Based on {dqsData.total_articles} articles
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
