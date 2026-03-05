@@ -29,23 +29,23 @@ export default function Home() {
         <StatCard
           title="Total Articles"
           value={loading ? '...' : data?.total_articles.toLocaleString() || '0'}
-          color="blue"
+
         />
         <StatCard
           title="Fields Monitored"
           value={loading ? '...' : data?.field_stats.length || 0}
-          color="green"
+
         />
         <StatCard
           title="Sentiment Models"
-          value="2"
-          subtitle="VADER, TextBlob"
-          color="yellow"
+          value="3"
+          subtitle="FinBERT, VADER, TextBlob"
+
         />
         <StatCard
           title="Backend Status"
           value={loading ? 'Checking...' : 'Online'}
-          color={loading ? 'yellow' : 'green'}
+
         />
       </div>
 
@@ -102,7 +102,7 @@ export default function Home() {
           </div>
           <div className="flex justify-between py-2 border-b">
             <span className="text-gray-500">Sentiment Engine</span>
-            <span className="text-green-600 font-medium">VADER + TextBlob Ready</span>
+            <span className="text-green-600 font-medium">FinBERT + VADER + TextBlob Ready</span>
           </div>
           <div className="flex justify-between py-2">
             <span className="text-gray-500">Data Source</span>

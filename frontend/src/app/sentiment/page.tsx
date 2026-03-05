@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Send, Upload, Clock, BarChart3, Globe } from 'lucide-react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import StatCard from '@/components/StatCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -60,7 +61,7 @@ interface AccuracyResult {
 }
 
 export default function SentimentPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('manual');
+  const [activeTab, setActiveTab] = useState<TabType>('accuracy');
   
   // Manual test state
   const [text, setText] = useState('');
@@ -152,10 +153,10 @@ export default function SentimentPage() {
   }, [activeTab]);
 
   const tabs: { id: TabType; label: string; icon: any }[] = [
-    { id: 'manual', label: 'Manual Test', icon: Send },
-    { id: 'efficiency', label: 'Efficiency Logs', icon: Clock },
     { id: 'accuracy', label: 'Model Accuracy', icon: BarChart3 },
+    { id: 'efficiency', label: 'Efficiency Logs', icon: Clock },
     { id: 'translation', label: 'Translation', icon: Globe },
+    { id: 'manual', label: 'Manual Test', icon: Send },
   ];
 
   return (
@@ -389,19 +390,23 @@ export default function SentimentPage() {
                 <StatCard
                   title="Articles Analyzed"
                   value={accuracy.total_analyzed}
+                  tooltip="Total number of articles analyzed for model comparison"
                 />
                 <StatCard
                   title="Avg Difference"
                   value={accuracy.metrics.average_difference?.toFixed(4) || 'N/A'}
+                  tooltip="Average absolute difference between FinBERT and Traditional model scores (0 = perfect agreement)"
                 />
                 <StatCard
                   title="FinBERT Bias"
                   value={accuracy.metrics.finbert_bias?.toFixed(4) || 'N/A'}
                   subtitle={accuracy.metrics.finbert_bias && accuracy.metrics.finbert_bias > 0 ? 'Overscores' : 'Underscores'}
+                  tooltip="Positive = FinBERT scores higher than traditional models; Negative = FinBERT scores lower"
                 />
                 <StatCard
                   title="Std Deviation"
                   value={accuracy.metrics.standard_deviation?.toFixed(4) || 'N/A'}
+                  tooltip="Standard deviation of score differences (higher = more inconsistency between models)"
                 />
               </div>
 
@@ -433,8 +438,29 @@ export default function SentimentPage() {
                         label={{ value: 'FinBERT Score', angle: -90, position: 'insideLeft' }}
                       />
                       <Tooltip 
-                        formatter={(value: any) => value?.toFixed(3)}
-                        labelFormatter={() => ''}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg" style={{ minWidth: '200px' }}>
+                                <p className="font-bold text-sm mb-2 border-b border-gray-700 pb-2">
+                                  {data.title || 'Unknown Article'}
+                                </p>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-300">Traditional:</span>
+                                    <span className="font-mono font-bold">{data.traditional_score?.toFixed(3)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-300">FinBERT:</span>
+                                    <span className="font-mono font-bold">{data.finbert_score?.toFixed(3)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
                       <Scatter 
                         name="Articles" 
@@ -453,6 +479,16 @@ export default function SentimentPage() {
                       </Scatter>
                     </ScatterChart>
                   </ResponsiveContainer>
+                  
+                  {/* Formula Explanation */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
+                    <p className="font-medium mb-1">Traditional Score Formula:</p>
+                    <code className="bg-gray-100 px-2 py-1 rounded">
+                      Traditional Score = (VADER Score + TextBlob Score) / 2
+                    </code>
+                  </div>
+                  
+                  {/* Color Legend */}
                   <div className="flex justify-center gap-6 mt-4 text-sm">
                     <span className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-green-500" /> Low difference (&lt;0.1)
@@ -472,24 +508,30 @@ export default function SentimentPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Traditional</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">VADER</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TextBlob</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FinBERT</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difference</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {accuracy.comparisons.slice(0, 15).map((c) => (
-                      <tr key={c.article_id}>
-                        <td className="px-4 py-3 text-sm text-gray-900">{c.title}</td>
-                        <td className="px-4 py-3 text-sm">{c.traditional_score.toFixed(3)}</td>
-                        <td className="px-4 py-3 text-sm">{c.finbert_score?.toFixed(3) || 'N/A'}</td>
-                        <td className={`px-4 py-3 text-sm font-medium ${
-                          (c.finbert_vs_traditional || 0) > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {c.finbert_vs_traditional?.toFixed(3) || 'N/A'}
-                        </td>
-                      </tr>
-                    ))}
+                    {accuracy.comparisons.slice(0, 15).map((c) => {
+                      const diff = c.finbert_vs_traditional || 0;
+                      const isGood = Math.abs(diff) <= 0.35;
+                      return (
+                        <tr key={c.article_id}>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.title}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.vader_score?.toFixed(3) || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.textblob_score?.toFixed(3) || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.finbert_score?.toFixed(3) || 'N/A'}</td>
+                          <td className={`px-4 py-3 text-sm font-bold ${
+                            isGood ? 'text-green-700' : 'text-red-700'
+                          }`}>
+                            {diff.toFixed(3)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -585,12 +627,3 @@ function MetricRow({ label, value }: { label: string; value: any }) {
   );
 }
 
-function StatCard({ title, value, subtitle }: { title: string; value: any; subtitle?: string }) {
-  return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <p className="text-xs text-gray-500 uppercase">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
-      {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
-    </div>
-  );
-}

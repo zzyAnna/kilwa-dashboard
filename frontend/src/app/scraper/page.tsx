@@ -224,23 +224,23 @@ export default function ScraperPage() {
         <StatCard
           title="Total Articles"
           value={data.total_articles.toLocaleString()}
-          color="blue"
+
         />
         <StatCard
           title="Fields Monitored"
           value={totalFields}
-          color="green"
+
         />
         <StatCard
           title="Healthy Fields (≥90%)"
           value={healthyFields}
           subtitle={`${((healthyFields / totalFields) * 100).toFixed(0)}% healthy`}
-          color={healthyFields === totalFields ? 'green' : 'yellow'}
+
         />
         <StatCard
           title="Critical Fields (<50%)"
           value={data.field_stats.filter((s) => s.non_null_percentage < 50).length}
-          color="red"
+
         />
       </div>
 
@@ -260,8 +260,8 @@ export default function ScraperPage() {
             ].filter(d => d.value > 0);
             
             return (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
                   <Pie
                     data={pieData}
                     cx="50%"
@@ -356,11 +356,16 @@ export default function ScraperPage() {
       {/* Chart */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Field Completeness Chart</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} layout="vertical">
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={chartData} layout="vertical" margin={{ left: 50, right: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" domain={[0, 100]} unit="%" />
-            <YAxis type="category" dataKey="name" width={100} />
+            <YAxis 
+              type="category" 
+              dataKey="name" 
+              width={150}
+              tick={{ fontSize: 12 }}
+            />
             <Tooltip />
             <Bar dataKey="filled" stackId="a" fill="#22c55e" name="Filled %" />
             <Bar dataKey="empty" stackId="a" fill="#ef4444" name="Empty %" />
