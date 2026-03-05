@@ -235,7 +235,7 @@ def get_model_accuracy_comparison(
             "finbert_bias": round(bias, 4),  # positive = FinBERT overscores
             "standard_deviation": round(std_dev, 4),
             "interpretation": (
-                f"FinBERT scores {'higher' if bias > 0 else 'lower'} than traditional models "
+                f"FinBERT scores {'higher' if bias > 0 else 'lower'} than the traditional model "
                 f"by an average of {abs(bias):.3f}"
             )
         }
@@ -351,7 +351,7 @@ async def upload_and_test(
     """
     **Manual Article Upload** - Test custom article with all models
     
-    Upload a text file or JSON to test FinBERT vs traditional models.
+    Upload a text file or JSON to test FinBERT vs traditional model.
     """
     content = await file.read()
     

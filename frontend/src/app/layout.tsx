@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Kilwa Pipeline Dashboard",
+  title: "Pulse",
   description: "Monitor and evaluate Kilwa's data processing pipeline",
 };
 

@@ -163,7 +163,7 @@ export default function SentimentPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Sentiment Analysis</h1>
-        <p className="text-gray-500 mt-1">Compare FinBERT vs VADER + TextBlob</p>
+        <p className="text-gray-500 mt-1">Evaluate FinBERT output</p>
       </div>
 
       {/* Tabs */}
@@ -368,7 +368,7 @@ export default function SentimentPage() {
       {activeTab === 'accuracy' && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <p className="text-gray-600">FinBERT vs Traditional (VADER + TextBlob) comparison</p>
+            <p className="text-gray-600">FinBERT vs. VADER vs. TextBlob vs. Traditional (VADER/TextBlob Hybrid) model comparison</p>
             <button
               onClick={loadAccuracy}
               disabled={accuracyLoading}
@@ -401,7 +401,7 @@ export default function SentimentPage() {
                   title="FinBERT Bias"
                   value={accuracy.metrics.finbert_bias?.toFixed(4) || 'N/A'}
                   subtitle={accuracy.metrics.finbert_bias && accuracy.metrics.finbert_bias > 0 ? 'Overscores' : 'Underscores'}
-                  tooltip="Positive = FinBERT scores higher than traditional models; Negative = FinBERT scores lower"
+                  tooltip="Positive = FinBERT scores higher than traditional model; Negative = FinBERT scores lower"
                 />
                 <StatCard
                   title="Std Deviation"
@@ -419,9 +419,9 @@ export default function SentimentPage() {
               {/* Scatter Plot - FinBERT vs Traditional */}
               {accuracy.comparisons.some(c => c.finbert_score !== undefined) && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold mb-1">Score Distribution: FinBERT vs Traditional</h3>
+                  <h3 className="text-lg font-semibold mb-1">Score Distribution: FinBERT vs. Traditional</h3>
                   <p className="text-sm text-gray-500 mb-4">
-                    The closeness of points to the y=x line demonstrates the agreement between FinBERT and traditional models
+                    The closeness of points to the y=x line demonstrates the agreement between FinBERT and the traditional model
                   </p>
                   <ResponsiveContainer width="100%" height={300}>
                     <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -505,10 +505,10 @@ export default function SentimentPage() {
                       <div className="w-3 h-3 rounded-full bg-green-500" /> Low difference (&lt;0.1)
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500" /> Medium (0.1-0.3)
+                      <div className="w-3 h-3 rounded-full bg-yellow-500" /> Medium difference (0.1-0.3)
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500" /> High (&gt;0.3)
+                      <div className="w-3 h-3 rounded-full bg-red-500" /> High difference (&gt;0.3)
                     </span>
                   </div>
                 </div>
@@ -519,11 +519,11 @@ export default function SentimentPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">VADER</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TextBlob</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Traditional</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FinBERT</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diff</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">VADER</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">TextBlob</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Traditional</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">FinBERT</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Diff</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -536,11 +536,11 @@ export default function SentimentPage() {
                       return (
                         <tr key={c.article_id}>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.title}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.vader_score?.toFixed(3) || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.textblob_score?.toFixed(3) || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.traditional_score?.toFixed(3) || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.finbert_score?.toFixed(3) || 'N/A'}</td>
-                          <td className={`px-4 py-3 text-sm font-bold ${diffColor}`}>
+                          <td className="px-4 py-3 text-center text-sm text-gray-900 font-medium">{c.vader_score?.toFixed(3) || 'N/A'}</td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-900 font-medium">{c.textblob_score?.toFixed(3) || 'N/A'}</td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-900 font-medium">{c.traditional_score?.toFixed(3) || 'N/A'}</td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-900 font-medium">{c.finbert_score?.toFixed(3) || 'N/A'}</td>
+                          <td className={`px-4 py-3 text-center text-sm font-bold ${diffColor}`}>
                             {diff.toFixed(3)}
                           </td>
                         </tr>

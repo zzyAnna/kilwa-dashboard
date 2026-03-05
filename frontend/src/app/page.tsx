@@ -20,8 +20,8 @@ export default function Home() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Pipeline Dashboard</h1>
-        <p className="text-gray-500 mt-2">Monitor Kilwa data processing and sentiment analysis</p>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-500 mt-2">Monitor Kilwa data processing and sentiment analysis across the pipeline.</p>
       </div>
 
       {/* Quick Stats */}

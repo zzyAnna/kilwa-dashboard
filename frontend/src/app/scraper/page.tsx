@@ -92,7 +92,7 @@ export default function ScraperPage() {
 
       {/* Filter Section */}
       <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-end gap-4">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Filter by Source
@@ -248,7 +248,7 @@ export default function ScraperPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Pie Chart - Field Health Distribution */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Field Health Distribution</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Metadata Field Health Distribution</h2>
           {(() => {
             const healthy = data.field_stats.filter((s) => s.non_null_percentage >= 90).length;
             const warning = data.field_stats.filter((s) => s.non_null_percentage >= 50 && s.non_null_percentage < 90).length;
@@ -284,7 +284,7 @@ export default function ScraperPage() {
 
         {/* Summary Stats */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Quality Summary</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Metadata Field Health Summary</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
               <div className="flex items-center gap-2">
@@ -328,7 +328,7 @@ export default function ScraperPage() {
       {/* Field Stats Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Field Completeness</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Metadata Field Completeness</h2>
           <p className="text-sm text-gray-700 mt-1">
             Status thresholds: Healthy ≥90% • Warning 50-90% • Critical {'<50%'}
           </p>
@@ -355,7 +355,7 @@ export default function ScraperPage() {
 
       {/* Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Field Completeness Chart</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Metadata Field Completeness Chart</h2>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={chartData} layout="vertical" margin={{ left: 50, right: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />

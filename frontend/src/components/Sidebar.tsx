@@ -22,7 +22,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-slate-900 text-white min-h-screen p-4">
       <div className="flex items-center gap-2 mb-8 px-2">
         <Activity className="w-8 h-8 text-blue-400" />
-        <h1 className="text-xl font-bold">Kilwa Dashboard</h1>
+        <h1 className="text-xl font-bold">Pulse</h1>
       </div>
       
       <nav className="space-y-2">
