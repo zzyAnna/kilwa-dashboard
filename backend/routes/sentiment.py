@@ -212,7 +212,7 @@ def get_model_accuracy_comparison(
     # Calculate metrics
     result = {
         "total_analyzed": len(comparisons),
-        "comparisons": comparisons[:25],  # First 25 for preview
+        "comparisons": comparisons,  # Return all comparisons
     }
     
     if finbert_available and finbert_scores:
@@ -256,60 +256,88 @@ def get_translation_accuracy(
     db: Session = Depends(get_db)
 ):
     """
-    **Language Translation Accuracy** - Original vs Translated sentiment
-    
-    Compares sentiment scores for translated articles vs original language.
+    **Language Sentiment Distribution** - Sentiment distribution by language
     """
-    # Get translated articles
-    translated = db.query(NewsArticle).filter(
-        NewsArticle.was_translated == True
-    ).limit(limit).all()
+    # Get language distribution
+    language_stats = db.query(
+        NewsArticle.language,
+        NewsArticle.was_translated,
+        func.count(NewsArticle.id).label("count"),
+        func.avg(NewsArticle.sentiment_score).label("avg_sentiment")
+    ).filter(
+        NewsArticle.language != None
+    ).group_by(
+        NewsArticle.language, NewsArticle.was_translated
+    ).all()
     
-    # Get original (non-translated) articles for comparison
-    original = db.query(NewsArticle).filter(
-        NewsArticle.was_translated == False
-    ).limit(limit).all()
+    # Organize by language
+    languages = {}
+    for row in language_stats:
+        lang = row.language or "unknown"
+        if lang not in languages:
+            languages[lang] = {
+                "code": lang,
+                "translated": {"count": 0, "avg_sentiment": None},
+                "original": {"count": 0, "avg_sentiment": None}
+            }
+        
+        key = "translated" if row.was_translated else "original"
+        languages[lang][key] = {
+            "count": row.count,
+            "avg_sentiment": round(row.avg_sentiment, 4) if row.avg_sentiment else None
+        }
     
-    def analyze_batch(articles, label):
-        results = []
-        for article in articles:
-            text = f"{article.title}. {article.content}" if article.content else article.title
-            analysis = analyzer.compare_models(text)
-            
-            results.append({
-                "article_id": article.id,
-                "title": article.title[:50] + "..." if len(article.title) > 50 else article.title,
-                "language": article.language,
-                "original_language": article.original_language,
-                "stored_score": article.sentiment_score,
-                "current_scores": analysis.get("models", {}),
-                "label_agreement": analysis.get("label_agreement", False)
-            })
-        return results
+    # Get sentiment label distribution BY LANGUAGE
+    lang_label_dist = db.query(
+        NewsArticle.language,
+        NewsArticle.sentiment_label,
+        func.count(NewsArticle.id).label("count")
+    ).filter(
+        NewsArticle.language != None,
+        NewsArticle.sentiment_label != None
+    ).group_by(
+        NewsArticle.language, NewsArticle.sentiment_label
+    ).all()
     
-    translated_results = analyze_batch(translated, "translated")
-    original_results = analyze_batch(original, "original")
+    # Organize sentiment by language
+    language_sentiment = {}
+    for row in lang_label_dist:
+        lang = row.language or "unknown"
+        label = row.sentiment_label or "unknown"
+        if lang not in language_sentiment:
+            language_sentiment[lang] = {"positive": 0, "negative": 0, "neutral": 0, "irrelevant": 0}
+        language_sentiment[lang][label] = row.count
     
-    # Calculate translation impact
-    translated_scores = [r["current_scores"].get("finbert", {}).get("score", 0) for r in translated_results if r["current_scores"].get("finbert")]
-    original_scores = [r["current_scores"].get("finbert", {}).get("score", 0) for r in original_results if r["current_scores"].get("finbert")]
+    # Get translated vs original counts
+    translated_count = db.query(NewsArticle).filter(NewsArticle.was_translated == True).count()
+    original_count = db.query(NewsArticle).filter(
+        (NewsArticle.was_translated == False) | (NewsArticle.was_translated == None)
+    ).count()
     
-    metrics = {
-        "translated_count": len(translated_results),
-        "original_count": len(original_results),
-        "translated_avg_score": round(sum(translated_scores) / len(translated_scores), 4) if translated_scores else None,
-        "original_avg_score": round(sum(original_scores) / len(original_scores), 4) if original_scores else None,
-    }
+    # Get overall sentiment label distribution
+    label_dist = db.query(
+        NewsArticle.sentiment_label,
+        func.count(NewsArticle.id).label("count")
+    ).filter(
+        NewsArticle.sentiment_label != None
+    ).group_by(
+        NewsArticle.sentiment_label
+    ).all()
     
-    if metrics["translated_avg_score"] is not None and metrics["original_avg_score"] is not None:
-        metrics["translation_impact"] = round(
-            abs(metrics["translated_avg_score"] - metrics["original_avg_score"]), 4
-        )
+    label_distribution = {"translated": {}, "original": {}}
+    for row in label_dist:
+        label = row.sentiment_label or "unknown"
+        label_distribution["original"][label] = row.count
     
     return {
-        "metrics": metrics,
-        "translated_articles": translated_results[:10],
-        "original_articles": original_results[:10]
+        "summary": {
+            "translated_count": translated_count,
+            "original_count": original_count,
+            "languages_count": len(languages)
+        },
+        "languages": list(languages.values()),
+        "language_sentiment": language_sentiment,
+        "label_distribution": label_distribution
     }
 
 

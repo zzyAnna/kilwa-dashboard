@@ -58,11 +58,15 @@ def get_scraper_health(
     # Total articles (with filters)
     total = base_query.count()
     
-    # Field statistics
+    # Field statistics - check all relevant metadata fields
     fields_to_check = [
         "content", "summary", "author", "url", 
-        "sentiment_score", "sentiment_label", "topics",
-        "language", "word_count", "original_language"
+        "sentiment_score", "sentiment_label", "sentiment_confidence",
+        "topics", "relevance_score",
+        "language", "word_count", 
+        "original_language", "language_confidence",
+        "was_translated", "translation_confidence",
+        "published_at", "processed_at"
     ]
     
     field_stats = []

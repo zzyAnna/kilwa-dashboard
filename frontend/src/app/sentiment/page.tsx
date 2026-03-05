@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Send, Upload, Clock, BarChart3, Globe } from 'lucide-react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, BarChart, Bar, Legend } from 'recharts';
 import StatCard from '@/components/StatCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -419,7 +419,10 @@ export default function SentimentPage() {
               {/* Scatter Plot - FinBERT vs Traditional */}
               {accuracy.comparisons.some(c => c.finbert_score !== undefined) && (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold mb-4">Score Distribution: FinBERT vs Traditional</h3>
+                  <h3 className="text-lg font-semibold mb-1">Score Distribution: FinBERT vs Traditional</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    The closeness of points to the y=x line demonstrates the agreement between FinBERT and traditional models
+                  </p>
                   <ResponsiveContainer width="100%" height={300}>
                     <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                       <CartesianGrid />
@@ -441,6 +444,7 @@ export default function SentimentPage() {
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
+                            if (data.isReferenceLine) return null;
                             return (
                               <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg" style={{ minWidth: '200px' }}>
                                 <p className="font-bold text-sm mb-2 border-b border-gray-700 pb-2">
@@ -461,6 +465,13 @@ export default function SentimentPage() {
                           }
                           return null;
                         }}
+                      />
+                      <Scatter 
+                        name="y=x" 
+                        data={[{traditional_score: -1, finbert_score: -1, isReferenceLine: true}, {traditional_score: 1, finbert_score: 1, isReferenceLine: true}]} 
+                        line={{ stroke: '#9ca3af', strokeWidth: 2, strokeDasharray: '5 5' }}
+                        shape={() => null}
+                        legendType="none"
                       />
                       <Scatter 
                         name="Articles" 
@@ -510,23 +521,26 @@ export default function SentimentPage() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">VADER</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TextBlob</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Traditional</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FinBERT</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difference</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diff</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {accuracy.comparisons.slice(0, 15).map((c) => {
+                    {accuracy.comparisons.filter(c => c.finbert_score !== undefined).slice(0, 30).map((c) => {
                       const diff = c.finbert_vs_traditional || 0;
-                      const isGood = Math.abs(diff) <= 0.35;
+                      const absDiff = Math.abs(diff);
+                      const diffColor = absDiff < 0.1 ? 'text-green-600' :
+                                        absDiff < 0.3 ? 'text-yellow-600' :
+                                        'text-red-600';
                       return (
                         <tr key={c.article_id}>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.title}</td>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.vader_score?.toFixed(3) || 'N/A'}</td>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.textblob_score?.toFixed(3) || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.traditional_score?.toFixed(3) || 'N/A'}</td>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">{c.finbert_score?.toFixed(3) || 'N/A'}</td>
-                          <td className={`px-4 py-3 text-sm font-bold ${
-                            isGood ? 'text-green-700' : 'text-red-700'
-                          }`}>
+                          <td className={`px-4 py-3 text-sm font-bold ${diffColor}`}>
                             {diff.toFixed(3)}
                           </td>
                         </tr>
@@ -542,21 +556,7 @@ export default function SentimentPage() {
 
       {/* Translation Tab */}
       {activeTab === 'translation' && (
-        <div className="space-y-6">
-          <p className="text-gray-600">Compare sentiment scores for translated vs original language articles</p>
-          
-          <div className="bg-yellow-50 rounded-lg p-4">
-            <p className="text-yellow-800 text-sm">
-              This feature requires articles with <code className="bg-yellow-100 px-1">was_translated</code> flag in the database.
-            </p>
-          </div>
-
-          <div className="text-center py-12 text-gray-500">
-            <Globe className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>Translation accuracy analysis coming soon.</p>
-            <p className="text-sm mt-2">Will show original vs translated sentiment differences.</p>
-          </div>
-        </div>
+        <TranslationTab />
       )}
     </div>
   );
@@ -623,6 +623,156 @@ function MetricRow({ label, value }: { label: string; value: any }) {
     <div className="flex justify-between">
       <span className="text-gray-500">{label}</span>
       <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function TranslationTab() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/sentiment/translation-accuracy`)
+      .then(res => res.json())
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const { summary, languages, language_sentiment } = data;
+
+  // Prepare pie chart data for languages
+  const languagePieData = languages
+    .filter((l: any) => (l.translated.count + l.original.count) > 0)
+    .map((l: any) => ({
+      name: l.code.toUpperCase(),
+      value: l.translated.count + l.original.count,
+      color: l.code === 'en' ? '#3b82f6' : l.code === 'fr' ? '#22c55e' : '#f59e0b'
+    }))
+    .sort((a: any, b: any) => b.value - a.value);
+
+  return (
+    <div className="space-y-6">
+      <p className="text-gray-600">Sentiment distribution by language</p>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard title="Total Articles" value={summary.translated_count + summary.original_count} />
+        <StatCard title="Languages" value={summary.languages_count} />
+        <StatCard 
+          title="Most Common Language" 
+          value={languagePieData[0]?.name || 'N/A'}
+          subtitle={languagePieData[0] ? `${languagePieData[0].value} articles` : ''}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Language Distribution Pie Chart */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Language Distribution</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={languagePieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={90}
+                dataKey="value"
+                label={({ name, value }) => `${name}: ${value}`}
+              >
+                {languagePieData.map((entry: any, index: number) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Sentiment Distribution by Language */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Sentiment Distribution by Language</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={Object.entries(data.language_sentiment || {}).map(([lang, labels]: [string, any]) => ({
+              language: lang.toUpperCase(),
+              positive: labels.positive || 0,
+              negative: labels.negative || 0,
+              neutral: labels.neutral || 0,
+            })).sort((a: any, b: any) => (b.positive + b.negative + b.neutral) - (a.positive + a.negative + a.neutral))}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="language" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="positive" stackId="a" fill="#2ECC71" name="Positive" />
+              <Bar dataKey="neutral" stackId="a" fill="#95A5A6" name="Neutral" />
+              <Bar dataKey="negative" stackId="a" fill="#E74C3C" name="Negative" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Language Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold">Sentiment Statistics by Language</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article Count</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percentage</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Sentiment Score</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {languages
+                .sort((a: any, b: any) => 
+                  (b.translated.count + b.original.count) - (a.translated.count + a.original.count)
+                )
+                .map((lang: any) => {
+                  const totalCount = lang.translated.count + lang.original.count;
+                  const totalArticles = summary.translated_count + summary.original_count;
+                  const avgScore = lang.translated.avg_sentiment || lang.original.avg_sentiment;
+                  
+                  return (
+                    <tr key={lang.code}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {lang.code.toUpperCase()}
+                        {lang.code === 'en' && <span className="ml-2 text-xs text-gray-400">(Primary)</span>}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{totalCount}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {((totalCount / totalArticles) * 100).toFixed(1)}%
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`font-medium ${
+                          avgScore > 0.1 ? 'text-green-600' :
+                          avgScore < -0.1 ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {avgScore?.toFixed(4) || 'N/A'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
