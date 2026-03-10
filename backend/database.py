@@ -2,15 +2,15 @@
 Database configuration for Kilwa Dashboard
 """
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+load_dotenv()
+
 # Database URL - will be set based on SQL dump import
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://kilwa_user:kilwa_password@localhost:5432/kilwa_dashboard"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
