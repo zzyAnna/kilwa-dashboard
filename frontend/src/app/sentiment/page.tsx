@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Send, Upload, Clock, BarChart3, Globe } from 'lucide-react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, BarChart, Bar, Legend } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, BarChart, Bar, Legend, LineChart, Line } from 'recharts';
 import StatCard from '@/components/StatCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -630,6 +630,9 @@ function MetricRow({ label, value }: { label: string; value: any }) {
 function TranslationTab() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [trendData, setTrendData] = useState<any>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/sentiment/translation-accuracy`)
@@ -638,6 +641,19 @@ function TranslationTab() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    const params = selectedLanguage !== 'all' ? `?language=${selectedLanguage}` : '';
+    fetch(`${API_BASE}/api/sentiment/sentiment-trend${params}`)
+      .then(res => res.json())
+      .then(res => {
+        setTrendData(res.trend);
+        if (res.available_languages && availableLanguages.length === 0) {
+          setAvailableLanguages(['all', ...res.available_languages]);
+        }
+      })
+      .catch(console.error);
+  }, [selectedLanguage]);
 
   if (loading) {
     return (
@@ -649,7 +665,7 @@ function TranslationTab() {
 
   if (!data) return null;
 
-  const { summary, languages, language_sentiment } = data;
+  const { summary, languages } = data;
 
   // Prepare pie chart data for languages
   const languagePieData = languages
@@ -661,9 +677,12 @@ function TranslationTab() {
     }))
     .sort((a: any, b: any) => b.value - a.value);
 
+  // Calculate total for percentage
+  const languageTotal = languagePieData.reduce((sum: number, item: any) => sum + item.value, 0);
+
   return (
     <div className="space-y-6">
-      <p className="text-gray-600">Sentiment distribution by language</p>
+      <p className="text-gray-600">Sentiment trend analysis by date and language</p>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -676,9 +695,9 @@ function TranslationTab() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         {/* Language Distribution Pie Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 md:col-span-4">
           <h3 className="text-lg font-semibold mb-4">Language Distribution</h3>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
@@ -689,7 +708,10 @@ function TranslationTab() {
                 innerRadius={50}
                 outerRadius={90}
                 dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
+                label={({ name, value }) => {
+                  const percent = languageTotal > 0 ? ((value / languageTotal) * 100).toFixed(1) : 0;
+                  return `${name}: ${value} (${percent}%)`;
+                }}
               >
                 {languagePieData.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -700,26 +722,59 @@ function TranslationTab() {
           </ResponsiveContainer>
         </div>
 
-        {/* Sentiment Distribution by Language */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Sentiment Distribution by Language</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={Object.entries(data.language_sentiment || {}).map(([lang, labels]: [string, any]) => ({
-              language: lang.toUpperCase(),
-              positive: labels.positive || 0,
-              negative: labels.negative || 0,
-              neutral: labels.neutral || 0,
-            })).sort((a: any, b: any) => (b.positive + b.negative + b.neutral) - (a.positive + a.negative + a.neutral))}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="language" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="positive" stackId="a" fill="#2ECC71" name="Positive" />
-              <Bar dataKey="neutral" stackId="a" fill="#95A5A6" name="Neutral" />
-              <Bar dataKey="negative" stackId="a" fill="#E74C3C" name="Negative" />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Sentiment Trend Chart */}
+        <div className="bg-white rounded-lg shadow p-6 md:col-span-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">
+              Sentiment Trend
+              {selectedLanguage !== 'all' && <span className="text-sm font-normal text-gray-500 ml-2">({selectedLanguage.toUpperCase()})</span>}
+            </h3>
+            <select
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {availableLanguages.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang === 'all' ? 'All Languages' : lang.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+          {trendData && trendData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={70}
+                />
+                <YAxis 
+                  domain={[-1, 1]}
+                  tickFormatter={(v) => v.toFixed(1)}
+                />
+                <Tooltip 
+                  formatter={(value: any) => [value?.toFixed(4), 'Avg Sentiment']}
+                  labelFormatter={(label) => `Date: ${label}`}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="avg_sentiment" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  name="Sentiment Score"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[280px] text-gray-400">
+              Loading trend data...
+            </div>
+          )}
         </div>
       </div>
 

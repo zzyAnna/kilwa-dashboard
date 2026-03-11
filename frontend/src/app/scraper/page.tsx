@@ -5,6 +5,21 @@ import { getScraperHealth, getScraperSources, getScraperLanguages, FieldStat, Sc
 import StatCard from '@/components/StatCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
+// Helper function to get color based on percentage value
+function getScoreColor(value: number): { bg: string; text: string } {
+  const pct = value * 100;
+  if (pct >= 90) return { bg: 'bg-green-50', text: 'text-green-600' };
+  if (pct >= 50) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+  return { bg: 'bg-red-50', text: 'text-red-600' };
+}
+
+function getFinalDQSColor(value: number): string {
+  const pct = value * 100;
+  if (pct >= 90) return 'from-green-500 to-green-600';
+  if (pct >= 50) return 'from-yellow-500 to-yellow-600';
+  return 'from-red-500 to-red-600';
+}
+
 export default function ScraperPage() {
   const [data, setData] = useState<ScraperHealth | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +65,7 @@ export default function ScraperPage() {
     if (sourceFilter !== 'all') params.append('source', sourceFilter);
     if (languageFilter !== 'all') params.append('language', languageFilter);
     
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/scraper/dqs?${params.toString()}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/scraper/dqs?${params.toString()}`)
       .then(res => res.json())
       .then(setDqsData)
       .catch(console.error);
@@ -145,63 +160,63 @@ export default function ScraperPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Quality Score (DQS)</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Completeness */}
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className={`text-center p-4 ${getScoreColor(dqsData.completeness).bg} rounded-lg`}>
               <div className="group relative inline-block cursor-help">
                 <div className="text-sm text-gray-700 font-medium">Completeness</div>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
                   Measures presence of data in core fields: content, sentiment_score, sentiment_label, sentiment_confidence
                 </div>
               </div>
-              <div className="text-2xl font-bold text-blue-600 mt-1">
+              <div className={`text-2xl font-bold ${getScoreColor(dqsData.completeness).text} mt-1`}>
                 {(dqsData.completeness * 100).toFixed(1)}%
               </div>
               <div className="text-xs text-gray-500 mt-1">Weight: 30%</div>
             </div>
             
             {/* Accuracy */}
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className={`text-center p-4 ${getScoreColor(dqsData.accuracy).bg} rounded-lg`}>
               <div className="group relative inline-block cursor-help">
                 <div className="text-sm text-gray-700 font-medium">Accuracy</div>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
                   Derived from model confidence levels. Uses mean sentiment_confidence as proxy for accuracy
                 </div>
               </div>
-              <div className="text-2xl font-bold text-green-600 mt-1">
+              <div className={`text-2xl font-bold ${getScoreColor(dqsData.accuracy).text} mt-1`}>
                 {(dqsData.accuracy * 100).toFixed(1)}%
               </div>
               <div className="text-xs text-gray-500 mt-1">Weight: 40%</div>
             </div>
             
             {/* Consistency */}
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+            <div className={`text-center p-4 ${getScoreColor(dqsData.consistency).bg} rounded-lg`}>
               <div className="group relative inline-block cursor-help">
                 <div className="text-sm text-gray-700 font-medium">Consistency</div>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
                   Checks if sentiment_label follows expected categories: Positive, Negative, Neutral, Irrelevant
                 </div>
               </div>
-              <div className="text-2xl font-bold text-yellow-600 mt-1">
+              <div className={`text-2xl font-bold ${getScoreColor(dqsData.consistency).text} mt-1`}>
                 {(dqsData.consistency * 100).toFixed(1)}%
               </div>
               <div className="text-xs text-gray-500 mt-1">Weight: 15%</div>
             </div>
             
             {/* Relevance */}
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className={`text-center p-4 ${getScoreColor(dqsData.relevance).bg} rounded-lg`}>
               <div className="group relative inline-block cursor-help">
                 <div className="text-sm text-gray-700 font-medium">Relevance</div>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-48 z-10">
                   Determines if data is useful for analysis. Penalized due to missing relevance_score and word_count metadata
                 </div>
               </div>
-              <div className="text-2xl font-bold text-purple-600 mt-1">
+              <div className={`text-2xl font-bold ${getScoreColor(dqsData.relevance).text} mt-1`}>
                 {(dqsData.relevance * 100).toFixed(1)}%
               </div>
               <div className="text-xs text-gray-500 mt-1">Weight: 15%</div>
             </div>
             
             {/* Final DQS */}
-            <div className="text-center p-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg text-white">
+            <div className={`text-center p-4 bg-gradient-to-br ${getFinalDQSColor(dqsData.final_dqs)} rounded-lg text-white`}>
               <div className="group relative inline-block cursor-help">
                 <div className="text-sm font-medium opacity-90">Final DQS</div>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-56 z-10">

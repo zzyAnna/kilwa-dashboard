@@ -448,3 +448,58 @@ def analyze_single_article(article_id: int, db: Session = Depends(get_db)):
         },
         "current_analysis": comparison
     }
+
+
+# ============ Sentiment Trend by Date ============
+
+@router.get("/sentiment-trend")
+def get_sentiment_trend(
+    language: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    **Sentiment Trend by Date** - Average sentiment score over time
+    Optional language filter
+    """
+    from sqlalchemy import cast, Date
+    
+    query = db.query(
+        cast(NewsArticle.published_at, Date).label("date"),
+        func.avg(NewsArticle.sentiment_score).label("avg_sentiment"),
+        func.count(NewsArticle.id).label("article_count")
+    ).filter(
+        NewsArticle.published_at != None,
+        NewsArticle.sentiment_score != None
+    )
+    
+    if language:
+        query = query.filter(NewsArticle.language == language)
+    
+    results = query.group_by(
+        cast(NewsArticle.published_at, Date)
+    ).order_by(
+        cast(NewsArticle.published_at, Date)
+    ).all()
+    
+    trend_data = []
+    for row in results:
+        trend_data.append({
+            "date": row.date.isoformat() if row.date else None,
+            "avg_sentiment": round(row.avg_sentiment, 4) if row.avg_sentiment else 0,
+            "article_count": row.article_count
+        })
+    
+    # Get available languages for selector
+    languages = db.query(
+        NewsArticle.language
+    ).filter(
+        NewsArticle.language != None
+    ).distinct().all()
+    
+    available_languages = [lang[0] for lang in languages if lang[0]]
+    
+    return {
+        "trend": trend_data,
+        "available_languages": available_languages,
+        "filtered_language": language
+    }

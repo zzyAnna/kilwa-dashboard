@@ -36,3 +36,7 @@ npm-debug.log*
 # Cache
 .cache/
 *.cache
+
+# Local files (not for upload)
+MEMORY.md
+context/
