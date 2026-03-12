@@ -2,6 +2,7 @@
 Kilwa Pipeline Dashboard Backend
 FastAPI application for monitoring scraper and sentiment analysis performance
 """
+import utils.session
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session

@@ -371,15 +371,16 @@ export default function ScraperPage() {
       {/* Chart */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Metadata Field Completeness Chart</h2>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} layout="vertical" margin={{ left: 50, right: 30 }}>
+        <ResponsiveContainer width="100%" height={600}>
+          <BarChart data={chartData} layout="vertical" margin={{ left: 80, right: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" domain={[0, 100]} unit="%" />
             <YAxis 
               type="category" 
               dataKey="name" 
-              width={150}
-              tick={{ fontSize: 12 }}
+              width={180}
+              tick={{ fontSize: 11 }}
+              interval={0}
             />
             <Tooltip />
             <Legend />
