@@ -458,36 +458,43 @@ def get_sentiment_trend(
     db: Session = Depends(get_db)
 ):
     """
-    **Sentiment Trend by Date** - Average sentiment score over time
+    **Sentiment Trend by Date** - Sentiment label frequencies over time
     Optional language filter
     """
     from sqlalchemy import cast, Date
     
+    # Get counts by date and sentiment label
     query = db.query(
         cast(NewsArticle.published_at, Date).label("date"),
-        func.avg(NewsArticle.sentiment_score).label("avg_sentiment"),
-        func.count(NewsArticle.id).label("article_count")
+        NewsArticle.sentiment_label,
+        func.count(NewsArticle.id).label("count")
     ).filter(
         NewsArticle.published_at != None,
-        NewsArticle.sentiment_score != None
+        NewsArticle.sentiment_label != None
     )
     
     if language:
         query = query.filter(NewsArticle.language == language)
     
     results = query.group_by(
-        cast(NewsArticle.published_at, Date)
+        cast(NewsArticle.published_at, Date),
+        NewsArticle.sentiment_label
     ).order_by(
         cast(NewsArticle.published_at, Date)
     ).all()
     
-    trend_data = []
+    # Aggregate by date
+    date_data: dict = {}
     for row in results:
-        trend_data.append({
-            "date": row.date.isoformat() if row.date else None,
-            "avg_sentiment": round(row.avg_sentiment, 4) if row.avg_sentiment else 0,
-            "article_count": row.article_count
-        })
+        date_str = row.date.isoformat() if row.date else None
+        if date_str not in date_data:
+            date_data[date_str] = {"date": date_str, "positive": 0, "negative": 0, "neutral": 0}
+        
+        label = (row.sentiment_label or "").lower()
+        if label in ["positive", "negative", "neutral"]:
+            date_data[date_str][label] = row.count
+    
+    trend_data = list(date_data.values())
     
     # Get available languages for selector
     languages = db.query(

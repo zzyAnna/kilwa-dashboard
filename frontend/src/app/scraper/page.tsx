@@ -382,6 +382,7 @@ export default function ScraperPage() {
               tick={{ fontSize: 12 }}
             />
             <Tooltip />
+            <Legend />
             <Bar dataKey="filled" stackId="a" fill="#22c55e" name="Filled %" />
             <Bar dataKey="empty" stackId="a" fill="#ef4444" name="Empty %" />
           </BarChart>

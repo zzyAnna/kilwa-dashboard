@@ -752,21 +752,32 @@ function TranslationTab() {
                   textAnchor="end"
                   height={70}
                 />
-                <YAxis 
-                  domain={[-1, 1]}
-                  tickFormatter={(v) => v.toFixed(1)}
-                />
-                <Tooltip 
-                  formatter={(value: any) => [value?.toFixed(4), 'Avg Sentiment']}
-                  labelFormatter={(label) => `Date: ${label}`}
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="positive" 
+                  stroke="#22c55e" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  name="Positive"
                 />
                 <Line 
                   type="monotone" 
-                  dataKey="avg_sentiment" 
-                  stroke="#3b82f6" 
+                  dataKey="negative" 
+                  stroke="#ef4444" 
                   strokeWidth={2}
                   dot={{ r: 3 }}
-                  name="Sentiment Score"
+                  name="Negative"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="neutral" 
+                  stroke="#6b728a" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  name="Neutral"
                 />
               </LineChart>
             </ResponsiveContainer>

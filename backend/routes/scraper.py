@@ -60,13 +60,15 @@ def get_scraper_health(
     
     # Field statistics - check all relevant metadata fields
     fields_to_check = [
+        "country_id", "title", "source",
         "content", "summary", "author", "url", 
         "sentiment_score", "sentiment_label", "sentiment_confidence",
         "topics", "relevance_score",
         "language", "word_count", 
         "original_language", "language_confidence",
         "was_translated", "translation_confidence",
-        "published_at", "processed_at"
+        "published_at", "processed_at",
+        "created_at", "updated_at"
     ]
     
     field_stats = []
